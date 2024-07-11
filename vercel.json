@@ -11,5 +11,10 @@
       "src": "/api-keys",
       "dest": "/api.js"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "gh-pages": false
+    }
+  }
 }

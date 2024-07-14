@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch"); // Make sure to install this package
+const fetch = require("node-fetch"); // Import node-fetch
 const app = express();
 require("dotenv").config(); // Load environment variables from .env
 
@@ -22,10 +22,18 @@ app.get("/api-keys", (req, res) => {
   });
 });
 
+// Fetch API keys and sheet IDs
+const fetchKeys = async () => {
+  return {
+    apiKey: process.env.API_KEY,
+    playersSheetId: process.env.PLAYERS_SHEET_ID,
+  };
+};
+
+// Function to fetch players from Google Sheets
 const fetchPlayers = async () => {
   try {
-    const apiKey = process.env.API_KEY;
-    const playersSheetId = process.env.PLAYERS_SHEET_ID;
+    const { apiKey, playersSheetId } = await fetchKeys();
 
     const response = await fetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${playersSheetId}/values/Sheet1!A1:C200?key=${apiKey}`
@@ -58,12 +66,13 @@ const fetchPlayers = async () => {
   }
 };
 
+// New route to fetch player data
 app.get("/players", async (req, res) => {
   try {
     const players = await fetchPlayers();
     res.json(players);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch players" });
+    res.status(500).json({ error: error.message });
   }
 });
 

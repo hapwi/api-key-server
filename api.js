@@ -105,12 +105,12 @@ app.get("/leaderboard-data", async (req, res) => {
     sortedData.forEach((entry, index) => {
       if (entry.totalScore !== previousTotalScore) {
         currentPosition = index + 1;
+        entry.position = `${currentPosition}`;
         tieCount = 0;
       } else {
         tieCount++;
+        entry.position = `T${currentPosition}`;
       }
-      entry.position =
-        tieCount > 0 ? `T${currentPosition}` : `${currentPosition}`;
       previousTotalScore = entry.totalScore;
     });
 

@@ -21,6 +21,16 @@
       "src": "/leaderboard-data",
       "methods": ["GET"],
       "dest": "/api.js"
+    },
+    {
+      "src": "/fetch-picks",
+      "methods": ["GET"],
+      "dest": "/api.js"
+    },
+    {
+      "src": "/submit-picks",
+      "methods": ["GET"],
+      "dest": "/api.js"
     }
   ]
 }

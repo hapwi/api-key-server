@@ -165,10 +165,10 @@ app.get("/golfers", async (req, res) => {
     const rows = response.data.values;
     if (rows.length) {
       const players = rows
-        .slice(1)
-        .filter((row) => row[0] && row[1] && row[2])
-        .map(([name]) => ({
-          name,
+        .slice(1) // Skip the header row
+        .filter((row) => row[0]) // Ensure the row has a value
+        .map((row) => ({
+          name: row[0],
         }));
 
       res.json(players);
@@ -176,9 +176,11 @@ app.get("/golfers", async (req, res) => {
       res.status(404).json({ error: "No data found." });
     }
   } catch (error) {
+    console.error("Error fetching golfers:", error);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

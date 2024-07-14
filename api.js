@@ -151,5 +151,37 @@ app.get("/players", async (req, res) => {
   }
 });
 
+app.get("/golfers", async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: process.env.API_KEY });
+    const playersSheetId = process.env.PLAYERS_SHEET_ID;
+    const range = "Sheet1!A1:A200"; // Adjust the range as needed
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: playersSheetId,
+      range: range,
+    });
+
+    const rows = response.data.values;
+    if (rows.length) {
+      const players = rows
+        .slice(1)
+        .filter((row) => row[0] && row[1] && row[2])
+        .map(([name]) => ({
+          name,
+        }));
+
+      res.json(players);
+    } else {
+      res.status(404).json({ error: "No data found." });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
+
 
 module.exports = app;

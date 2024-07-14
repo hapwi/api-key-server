@@ -31,6 +31,12 @@
       "src": "/submit-picks",
       "methods": ["GET"],
       "dest": "/api.js"
+    },
+
+    {
+      "src": "/golfers",
+      "methods": ["GET"],
+      "dest": "/api.js"
     }
   ]
 }

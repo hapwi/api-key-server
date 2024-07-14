@@ -4,7 +4,12 @@ const fetch = require("node-fetch");
 const app = express();
 require("dotenv").config(); // Load environment variables from .env
 
-app.use(cors()); // Enable CORS for all routes
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Allow your client application
+    optionsSuccessStatus: 200,
+  })
+); // Enable CORS for all routes
 
 app.get("/api-keys", (req, res) => {
   const apiKey = process.env.API_KEY;

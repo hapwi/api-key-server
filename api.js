@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch"); // Import node-fetch
+const { google } = require("googleapis");
 const app = express();
 require("dotenv").config(); // Load environment variables from .env
 
@@ -22,55 +22,32 @@ app.get("/api-keys", (req, res) => {
   });
 });
 
-// Fetch API keys and sheet IDs
-const fetchKeys = async () => {
-  return {
-    apiKey: process.env.API_KEY,
-    playersSheetId: process.env.PLAYERS_SHEET_ID,
-  };
-};
-
-// Function to fetch players from Google Sheets
-const fetchPlayers = async () => {
-  try {
-    const { apiKey, playersSheetId } = await fetchKeys();
-
-    const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${playersSheetId}/values/Sheet1!A1:C200?key=${apiKey}`
-    );
-    const data = await response.json();
-
-    // Log the raw data for debugging
-    console.log("Raw data from Google Sheets API:", data);
-
-    if (data.error) {
-      throw new Error(data.error.message);
-    }
-
-    const players = data.values
-      .slice(1)
-      .filter((row) => row[0] && row[1] && row[2])
-      .map(([name, score, imageUrl]) => ({
-        name,
-        score: score === "#VALUE!" || score === "0" ? "E" : score,
-        imageUrl,
-      }));
-
-    // Log the processed player data
-    console.log("Processed player data:", players);
-
-    return players;
-  } catch (error) {
-    console.error("Error fetching players:", error);
-    throw error;
-  }
-};
-
-// New route to fetch player data
 app.get("/players", async (req, res) => {
   try {
-    const players = await fetchPlayers();
-    res.json(players);
+    const sheets = google.sheets({ version: "v4", auth: process.env.API_KEY });
+    const playersSheetId = process.env.PLAYERS_SHEET_ID;
+    const range = "Sheet1!A1:C200"; // Adjust the range as needed
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: playersSheetId,
+      range: range,
+    });
+
+    const rows = response.data.values;
+    if (rows.length) {
+      const players = rows
+        .slice(1)
+        .filter((row) => row[0] && row[1] && row[2])
+        .map(([name, score, imageUrl]) => ({
+          name,
+          score: score === "#VALUE!" || score === "0" ? "E" : score,
+          imageUrl,
+        }));
+
+      res.json(players);
+    } else {
+      res.status(404).json({ error: "No data found." });
+    }
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

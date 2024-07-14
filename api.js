@@ -25,7 +25,8 @@ app.get("/api-keys", (req, res) => {
 app.get("/leaderboard-data", async (req, res) => {
   try {
     const sheets = google.sheets({ version: "v4", auth: process.env.API_KEY });
-    const { entriesSheetId, leaderboardSheetId } = process.env;
+    const entriesSheetId = process.env.ENTRIES_SHEET_ID;
+    const leaderboardSheetId = process.env.LEADERBOARD_SHEET_ID;
 
     const [
       entriesData,

@@ -11,25 +11,12 @@ app.use(
   })
 ); // Enable CORS for all routes
 
-app.get("/api-keys", (req, res) => {
+app.get("/api-keys", async (req, res) => {
   const apiKey = process.env.API_KEY;
   const leaderboardSheetId = process.env.LEADERBOARD_SHEET_ID;
   const entriesSheetId = process.env.ENTRIES_SHEET_ID;
   const playersSheetId = process.env.PLAYERS_SHEET_ID;
   const formSheetId = process.env.FORM_SHEET_ID;
-
-  res.json({
-    apiKey,
-    leaderboardSheetId,
-    entriesSheetId,
-    playersSheetId,
-    formSheetId,
-  });
-});
-
-app.get("/players", async (req, res) => {
-  const apiKey = process.env.API_KEY;
-  const playersSheetId = process.env.PLAYERS_SHEET_ID;
 
   try {
     const response = await fetch(
@@ -50,7 +37,14 @@ app.get("/players", async (req, res) => {
         imageUrl,
       }));
 
-    res.json(players);
+    res.json({
+      apiKey,
+      leaderboardSheetId,
+      entriesSheetId,
+      playersSheetId,
+      formSheetId,
+      players, // Include the fetched player data in the response
+    });
   } catch (error) {
     console.error("Error fetching players:", error);
     res.status(500).json({ error: error.message });

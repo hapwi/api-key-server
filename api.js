@@ -22,6 +22,102 @@ app.get("/api-keys", (req, res) => {
   });
 });
 
+app.get("/leaderboard-data", async (req, res) => {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: process.env.API_KEY });
+    const { entriesSheetId, leaderboardSheetId } = process.env;
+
+    const [
+      entriesData,
+      picksScoresData,
+      leaderboardTotalScores,
+      changeTrackerData,
+    ] = await Promise.all([
+      sheets.spreadsheets.values.get({
+        spreadsheetId: entriesSheetId,
+        range: "Sheet1!A1:K",
+      }),
+      sheets.spreadsheets.values.get({
+        spreadsheetId: entriesSheetId,
+        range: "PicksScores!A2:B1000",
+      }),
+      sheets.spreadsheets.values.get({
+        spreadsheetId: leaderboardSheetId,
+        range: "CurrentLeaderboard!A1:Z",
+      }),
+      sheets.spreadsheets.values.get({
+        spreadsheetId: leaderboardSheetId,
+        range: "ChangeTracker!A1:D1000",
+      }),
+    ]);
+
+    const scoresMap = new Map(picksScoresData.data.values);
+    const totalScoresMap = new Map(
+      leaderboardTotalScores.data.values.slice(1).map((row) => [row[0], row[1]])
+    );
+
+    const changeMap = new Map(
+      changeTrackerData.data.values.slice(1).map((row) => {
+        const changeValue = row[3];
+        if (typeof changeValue === "string" && changeValue.startsWith("+")) {
+          return [row[0], parseInt(changeValue.substring(1))];
+        } else {
+          return [row[0], parseInt(changeValue) || 0];
+        }
+      })
+    );
+
+    const [, ...rows] = entriesData.data.values;
+
+    const formattedData = rows.map((row, index) => {
+      const golfers = row
+        .slice(1, 7)
+        .map((name) => ({
+          name,
+          score: scoresMap.get(name) || "-",
+        }))
+        .sort((a, b) => parseInt(a.score) - parseInt(b.score));
+
+      const playerName = row[0];
+      const totalScore = totalScoresMap.get(playerName) || "-";
+      const change = changeMap.get(playerName) || 0;
+
+      return {
+        id: index + 1,
+        user: playerName,
+        totalScore,
+        change,
+        tiebreaker: row[7],
+        golfers,
+      };
+    });
+
+    const sortedData = formattedData.sort(
+      (a, b) => parseInt(a.totalScore) - parseInt(b.totalScore)
+    );
+
+    let currentPosition = 1;
+    let previousTotalScore = sortedData[0]?.totalScore || "-";
+    let tieCounter = 0;
+
+    sortedData.forEach((entry, index) => {
+      if (entry.totalScore !== previousTotalScore) {
+        currentPosition = index + 1;
+        tieCounter = 0;
+      } else {
+        tieCounter += 1;
+      }
+      entry.position =
+        tieCounter > 0 ? `T${currentPosition}` : `${currentPosition}`;
+      previousTotalScore = entry.totalScore;
+    });
+
+    res.json(sortedData);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get("/players", async (req, res) => {
   try {
     const sheets = google.sheets({ version: "v4", auth: process.env.API_KEY });

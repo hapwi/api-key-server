@@ -16,6 +16,11 @@
       "src": "/players",
       "methods": ["GET"],
       "dest": "/api.js"
+    },
+    {
+      "src": "/leaderboard-data",
+      "methods": ["GET"],
+      "dest": "/api.js"
     }
   ]
 }

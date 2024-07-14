@@ -97,19 +97,20 @@ app.get("/leaderboard-data", async (req, res) => {
       (a, b) => parseInt(a.totalScore) - parseInt(b.totalScore)
     );
 
+    // Assign positions with handling ties
     let currentPosition = 1;
-    let previousTotalScore = sortedData[0]?.totalScore || "-";
-    let tieCounter = 0;
+    let previousTotalScore = null;
+    let tieCount = 0;
 
     sortedData.forEach((entry, index) => {
       if (entry.totalScore !== previousTotalScore) {
         currentPosition = index + 1;
-        tieCounter = 0;
+        tieCount = 0;
       } else {
-        tieCounter += 1;
+        tieCount++;
       }
       entry.position =
-        tieCounter > 0 ? `T${currentPosition}` : `${currentPosition}`;
+        tieCount > 0 ? `T${currentPosition}` : `${currentPosition}`;
       previousTotalScore = entry.totalScore;
     });
 

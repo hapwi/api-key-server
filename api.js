@@ -1,23 +1,26 @@
 const express = require("express");
 const cors = require("cors");
-const fetch = require("node-fetch"); // Import node-fetch for server-side fetching
+const axios = require("axios");
 const app = express();
-require("dotenv").config(); // Load environment variables from .env
+require("dotenv").config();
 
-app.use(cors()); // Enable CORS for all routes
+app.use(cors());
 
-const fetchPlayers = async (apiKey, playersSheetId) => {
+// Helper function to fetch data from Google Sheets
+async function fetchSheetData(sheetId, range, apiKey) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${range}?key=${apiKey}`;
+  const response = await axios.get(url);
+  return response.data.values;
+}
+
+app.get("/api/players", async (req, res) => {
   try {
-    const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${playersSheetId}/values/Sheet1!A1:C200?key=${apiKey}`
-    );
-    const data = await response.json();
+    const apiKey = process.env.API_KEY;
+    const playersSheetId = process.env.PLAYERS_SHEET_ID;
 
-    if (data.error) {
-      throw new Error(data.error.message);
-    }
+    const data = await fetchSheetData(playersSheetId, "Sheet1!A1:C200", apiKey);
 
-    const players = data.values
+    const players = data
       .slice(1)
       .filter((row) => row[0] && row[1] && row[2])
       .map(([name, score, imageUrl]) => ({
@@ -26,32 +29,10 @@ const fetchPlayers = async (apiKey, playersSheetId) => {
         imageUrl,
       }));
 
-    return players;
+    res.json(players);
   } catch (error) {
     console.error("Error fetching players:", error);
-    throw error;
-  }
-};
-
-app.get("/api-keys", async (req, res) => {
-  const apiKey = process.env.API_KEY;
-  const leaderboardSheetId = process.env.LEADERBOARD_SHEET_ID;
-  const entriesSheetId = process.env.ENTRIES_SHEET_ID;
-  const playersSheetId = process.env.PLAYERS_SHEET_ID;
-  const formSheetId = process.env.FORM_SHEET_ID;
-
-  try {
-    const players = await fetchPlayers(apiKey, playersSheetId);
-    res.json({
-      apiKey,
-      leaderboardSheetId,
-      entriesSheetId,
-      playersSheetId,
-      formSheetId,
-      players,
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Failed to fetch player data" });
   }
 });
 

@@ -128,6 +128,9 @@ app.get("/leaderboard-data", async (req, res) => {
         entry.position = `${currentPosition}`;
         tieCount = 0;
       } else {
+        if (tieCount === 0) {
+          sortedData[index - 1].position = `T\u2009${currentPosition}`;
+        }
         tieCount++;
         entry.position = `T\u2009${currentPosition}`;
       }
@@ -139,6 +142,7 @@ app.get("/leaderboard-data", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

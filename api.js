@@ -129,7 +129,7 @@ app.get("/leaderboard-data", async (req, res) => {
         tieCount = 0;
       } else {
         tieCount++;
-        entry.position = `TT\u2009${currentPosition}`;
+        entry.position = `T\u2009${currentPosition}`;
       }
       previousTotalScore = entry.totalScore;
     });

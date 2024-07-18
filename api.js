@@ -71,17 +71,27 @@ app.get("/leaderboard-data", async (req, res) => {
     const [, ...rows] = entriesData.data.values;
 
     const formattedData = rows.map((row, index) => {
-      const golfers = row
-        .slice(1, 7)
-        .map((name) => ({
-          name,
-          score: scoresMap.get(name) || "-",
-        }))
-        .sort((a, b) => {
-          const scoreA = a.score === "E" ? 0 : parseInt(a.score);
-          const scoreB = b.score === "E" ? 0 : parseInt(b.score);
-          return scoreA - scoreB;
-        });
+      const golfers = row.slice(1, 7).map((name) => ({
+        name,
+        score: scoresMap.get(name) || "-",
+      }));
+
+      // Sort golfers
+      golfers.sort((a, b) => {
+        const scoreA =
+          a.score === "-"
+            ? Number.MAX_SAFE_INTEGER
+            : a.score === "E"
+            ? 0
+            : parseInt(a.score);
+        const scoreB =
+          b.score === "-"
+            ? Number.MAX_SAFE_INTEGER
+            : b.score === "E"
+            ? 0
+            : parseInt(b.score);
+        return scoreA - scoreB;
+      });
 
       const playerName = row[0];
       const totalScore = totalScoresMap.get(playerName) || "E";
@@ -129,6 +139,7 @@ app.get("/leaderboard-data", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

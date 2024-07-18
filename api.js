@@ -77,10 +77,14 @@ app.get("/leaderboard-data", async (req, res) => {
           name,
           score: scoresMap.get(name) || "-",
         }))
-        .sort((a, b) => parseInt(a.score) - parseInt(b.score));
+        .sort((a, b) => {
+          const scoreA = a.score === "E" ? 0 : parseInt(a.score);
+          const scoreB = b.score === "E" ? 0 : parseInt(b.score);
+          return scoreA - scoreB;
+        });
 
       const playerName = row[0];
-      const totalScore = totalScoresMap.get(playerName) || "-";
+      const totalScore = totalScoresMap.get(playerName) || "E";
       const change = changeMap.get(playerName) || 0;
 
       return {
@@ -93,9 +97,21 @@ app.get("/leaderboard-data", async (req, res) => {
       };
     });
 
-    const sortedData = formattedData.sort(
-      (a, b) => parseInt(a.totalScore) - parseInt(b.totalScore)
-    );
+    // Custom sorting function
+    const sortScores = (a, b) => {
+      const scoreA = a.totalScore === "E" ? 0 : parseInt(a.totalScore);
+      const scoreB = b.totalScore === "E" ? 0 : parseInt(b.totalScore);
+
+      // Sort numerically
+      if (scoreA !== scoreB) {
+        return scoreA - scoreB;
+      }
+
+      // Handle ties by tiebreaker
+      return parseInt(a.tiebreaker) - parseInt(b.tiebreaker);
+    };
+
+    const sortedData = formattedData.sort(sortScores);
 
     // Assign positions with handling ties
     let currentPosition = 1;
@@ -119,6 +135,7 @@ app.get("/leaderboard-data", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 app.get("/players", async (req, res) => {
   try {

@@ -97,18 +97,12 @@ app.get("/leaderboard-data", async (req, res) => {
       };
     });
 
-    // Custom sorting function
+    // Custom sorting function considering only totalScore
     const sortScores = (a, b) => {
       const scoreA = a.totalScore === "E" ? 0 : parseInt(a.totalScore);
       const scoreB = b.totalScore === "E" ? 0 : parseInt(b.totalScore);
 
-      // Sort numerically
-      if (scoreA !== scoreB) {
-        return scoreA - scoreB;
-      }
-
-      // Handle ties by tiebreaker
-      return parseInt(a.tiebreaker) - parseInt(b.tiebreaker);
+      return scoreA - scoreB;
     };
 
     const sortedData = formattedData.sort(sortScores);
@@ -135,6 +129,7 @@ app.get("/leaderboard-data", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 app.get("/players", async (req, res) => {

@@ -58,7 +58,7 @@ app.get("/leaderboard-data", async (req, res) => {
     );
 
     const changeMap = new Map(
-      changeTrackerData.data.values.slice(1).map((row) => {
+      changeTrackerData.data.values.map((row) => {
         const changeValue = row[3];
         if (typeof changeValue === "string" && changeValue.startsWith("+")) {
           return [row[0], parseInt(changeValue.substring(1))];

@@ -48,7 +48,7 @@ app.get("/leaderboard-data", async (req, res) => {
       }),
       sheets.spreadsheets.values.get({
         spreadsheetId: leaderboardSheetId,
-        range: "ChangeTracker!A1:D1000",
+        range: "Sheet19!H1:I1000",
       }),
     ]);
 

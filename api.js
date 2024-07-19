@@ -118,6 +118,9 @@ app.get("/leaderboard-data", async (req, res) => {
       };
     });
 
+    // Ensure formattedData is always an array
+    const sortedData = Array.isArray(formattedData) ? formattedData : [];
+
     // Custom sorting function considering only totalScore
     const sortScores = (a, b) => {
       const scoreA = a.totalScore === "E" ? 0 : parseInt(a.totalScore);
@@ -126,7 +129,7 @@ app.get("/leaderboard-data", async (req, res) => {
       return scoreA - scoreB;
     };
 
-    const sortedData = formattedData.sort(sortScores);
+    sortedData.sort(sortScores);
 
     // Assign positions with handling ties
     let currentPosition = 1;
@@ -154,6 +157,7 @@ app.get("/leaderboard-data", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

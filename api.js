@@ -48,7 +48,7 @@ app.get("/leaderboard-data", async (req, res) => {
       }),
       sheets.spreadsheets.values.get({
         spreadsheetId: leaderboardSheetId,
-        range: "Sheet19!H1:I1000",
+        range: "Sheet19!H2:I1000", // Updated to fetch data from columns H and I in "Sheet19"
       }),
     ]);
 
@@ -59,11 +59,12 @@ app.get("/leaderboard-data", async (req, res) => {
 
     const changeMap = new Map(
       changeTrackerData.data.values.map((row) => {
-        const changeValue = row[3];
+        const playerName = row[0];
+        const changeValue = row[1];
         if (typeof changeValue === "string" && changeValue.startsWith("+")) {
-          return [row[0], parseInt(changeValue.substring(1))];
+          return [playerName, parseInt(changeValue.substring(1))];
         } else {
-          return [row[0], parseInt(changeValue) || 0];
+          return [playerName, parseInt(changeValue) || 0];
         }
       })
     );
@@ -142,6 +143,7 @@ app.get("/leaderboard-data", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

@@ -33,7 +33,6 @@ app.get("/leaderboard-data", async (req, res) => {
       picksScoresData,
       leaderboardTotalScores,
       changeTrackerData,
-      cutScoreData, // Add fetching cut score data
     ] = await Promise.all([
       sheets.spreadsheets.values.get({
         spreadsheetId: entriesSheetId,
@@ -49,11 +48,7 @@ app.get("/leaderboard-data", async (req, res) => {
       }),
       sheets.spreadsheets.values.get({
         spreadsheetId: leaderboardSheetId,
-        range: "Sheet19!H2:I1000", // Updated to fetch data from columns H and I in "Sheet19"
-      }),
-      sheets.spreadsheets.values.get({
-        spreadsheetId: leaderboardSheetId,
-        range: "CurrentLeaderboard!D2:D10", // Fetching the cut score from the relevant sheet and range
+        range: "Sheet19!H1:I1000",
       }),
     ]);
 
@@ -64,17 +59,14 @@ app.get("/leaderboard-data", async (req, res) => {
 
     const changeMap = new Map(
       changeTrackerData.data.values.map((row) => {
-        const playerName = row[0];
-        const changeValue = row[1];
+        const changeValue = row[3];
         if (typeof changeValue === "string" && changeValue.startsWith("+")) {
-          return [playerName, parseInt(changeValue.substring(1))];
+          return [row[0], parseInt(changeValue.substring(1))];
         } else {
-          return [playerName, parseInt(changeValue) || 0];
+          return [row[0], parseInt(changeValue) || 0];
         }
       })
     );
-
-    const cutScore = cutScoreData.data.values[0][0]; // Extract the cut score
 
     const [, ...rows] = entriesData.data.values;
 
@@ -145,18 +137,11 @@ app.get("/leaderboard-data", async (req, res) => {
       previousTotalScore = entry.totalScore;
     });
 
-    res.json({ cutScore, leaderboard: sortedData });
+    res.json(sortedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
-
-
-
-
-
-
-
 
 app.get("/players", async (req, res) => {
   try {
@@ -218,10 +203,5 @@ app.get("/golfers", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
-
-
-
-
 
 module.exports = app;

@@ -105,10 +105,7 @@ app.get("/leaderboard-data", async (req, res) => {
       });
 
       const playerName = row[0];
-      let totalScore = totalScoresMap.get(playerName) || "E";
-      if (parseInt(totalScore) > 0) {
-        totalScore = `+${totalScore}`;
-      }
+      const totalScore = totalScoresMap.get(playerName) || "E";
       const change = changeMap.get(playerName) || 0;
 
       return {
@@ -157,6 +154,7 @@ app.get("/leaderboard-data", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 

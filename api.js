@@ -33,7 +33,6 @@ app.get("/leaderboard-data", async (req, res) => {
       picksScoresData,
       leaderboardTotalScores,
       changeTrackerData,
-      cutScoreData, // Added to fetch the cut score
     ] = await Promise.all([
       sheets.spreadsheets.values.get({
         spreadsheetId: entriesSheetId,
@@ -51,16 +50,7 @@ app.get("/leaderboard-data", async (req, res) => {
         spreadsheetId: leaderboardSheetId,
         range: "Sheet19!H2:I1000", // Updated to fetch data from columns H and I in "Sheet19"
       }),
-      sheets.spreadsheets.values.get({
-        spreadsheetId: leaderboardSheetId,
-        range: "CurrentLeaderboard!D2:D2", // Fetch the cut score from column D
-      }),
     ]);
-
-    let cutScore = cutScoreData.data.values[0][0]; // Extract the cut score
-    if (parseInt(cutScore) > 0) {
-      cutScore = `+${cutScore}`;
-    }
 
     const scoresMap = new Map(picksScoresData.data.values);
     const totalScoresMap = new Map(
@@ -118,9 +108,6 @@ app.get("/leaderboard-data", async (req, res) => {
       };
     });
 
-    // Ensure formattedData is always an array
-    const sortedData = Array.isArray(formattedData) ? formattedData : [];
-
     // Custom sorting function considering only totalScore
     const sortScores = (a, b) => {
       const scoreA = a.totalScore === "E" ? 0 : parseInt(a.totalScore);
@@ -129,7 +116,7 @@ app.get("/leaderboard-data", async (req, res) => {
       return scoreA - scoreB;
     };
 
-    sortedData.sort(sortScores);
+    const sortedData = formattedData.sort(sortScores);
 
     // Assign positions with handling ties
     let currentPosition = 1;
@@ -151,15 +138,11 @@ app.get("/leaderboard-data", async (req, res) => {
       previousTotalScore = entry.totalScore;
     });
 
-    // Include the cut score in the response
-    res.json({ cutScore, leaderboard: sortedData });
+    res.json(sortedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
-
-
-
 
 
 

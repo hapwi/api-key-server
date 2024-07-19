@@ -53,7 +53,7 @@ app.get("/leaderboard-data", async (req, res) => {
       }),
       sheets.spreadsheets.values.get({
         spreadsheetId: leaderboardSheetId,
-        range: "CUT!D1:D10", // Fetching the cut score from the relevant sheet and range
+        range: "CurrentLeaderboard!D1:D10", // Fetching the cut score from the relevant sheet and range
       }),
     ]);
 

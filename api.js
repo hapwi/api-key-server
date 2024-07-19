@@ -33,6 +33,7 @@ app.get("/leaderboard-data", async (req, res) => {
       picksScoresData,
       leaderboardTotalScores,
       changeTrackerData,
+      cutScoreData, // Add fetching cut score data
     ] = await Promise.all([
       sheets.spreadsheets.values.get({
         spreadsheetId: entriesSheetId,
@@ -49,6 +50,10 @@ app.get("/leaderboard-data", async (req, res) => {
       sheets.spreadsheets.values.get({
         spreadsheetId: leaderboardSheetId,
         range: "Sheet19!H2:I1000", // Updated to fetch data from columns H and I in "Sheet19"
+      }),
+      sheets.spreadsheets.values.get({
+        spreadsheetId: leaderboardSheetId,
+        range: "CutScore!A1:A1", // Fetching the cut score from the relevant sheet and range
       }),
     ]);
 
@@ -68,6 +73,8 @@ app.get("/leaderboard-data", async (req, res) => {
         }
       })
     );
+
+    const cutScore = cutScoreData.data.values[0][0]; // Extract the cut score
 
     const [, ...rows] = entriesData.data.values;
 
@@ -138,11 +145,12 @@ app.get("/leaderboard-data", async (req, res) => {
       previousTotalScore = entry.totalScore;
     });
 
-    res.json(sortedData);
+    res.json({ cutScore, leaderboard: sortedData });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
